@@ -1,0 +1,9 @@
+[package]
+name = "project-finder"
+version = "0.1.0"
+authors = ["Luyu Cheng <luyu@hey.com>"]
+edition = "2018"
+description = "Find all projects in your deeply nested development directory."
+
+[dependencies]
+clap = "3.0.0-beta.2"
