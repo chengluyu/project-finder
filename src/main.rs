@@ -3,6 +3,7 @@ use std::fmt;
 use std::fs::{self, DirEntry};
 use std::io;
 use std::path::Path;
+use colored::*;
 
 pub struct Git {
     clean: bool,
@@ -30,26 +31,29 @@ impl fmt::Display for Project {
         if let &Some(Git { clean, nosync }) = &self.git {
             write!(
                 f,
-                "found Git with {} worktree and {}",
+                "  found {} with {} worktree and {}",
+                "Git".bold(),
                 if clean { "clean" } else { "dirty" },
                 if nosync { "need sync" } else { "synced" }
             )?;
         } else {
-            write!(f, "no Git found")?;
+            write!(f, "no {} found", "Git".bold(),)?;
         }
         if let Some(kind) = &self.kind {
+            writeln!(f)?;
             match kind {
                 &ProjectKind::NodeJS {
                     installed,
                     lockfile,
                 } => write!(
                     f,
-                    "found {} Node.js ({} lockfile)",
+                    "  found {} {} ({} lockfile)",
                     if installed {
                         "installed"
                     } else {
                         "uninitialized"
                     },
+                    "Node.js".bold(),
                     if lockfile { "has" } else { "no" }
                 )?,
                 &ProjectKind::Rust { installed } => write!(
@@ -109,7 +113,9 @@ fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
     if dir.is_dir() {
         let project = examine(dir);
         if project.is_project() {
-            println!("{}: {}", dir.display(), project);
+            let dir_path = dir.display().to_string().green();
+            println!("[{}]", dir_path);
+            println!("{}", project);
         } else {
             for entry in fs::read_dir(dir)? {
                 let entry = entry?;
