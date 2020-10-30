@@ -2,7 +2,7 @@ use clap::{App, Arg};
 use std::fmt;
 use std::fs::{self, DirEntry};
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use colored::*;
 
 pub struct Git {
@@ -71,6 +71,20 @@ impl fmt::Display for Project {
     }
 }
 
+fn is_file(path_buf: &mut PathBuf, file_name: &str) -> bool {
+    path_buf.push(file_name);
+    let result = path_buf.is_file();
+    path_buf.pop();
+    result
+}
+
+fn is_dir(path_buf: &mut PathBuf, file_name: &str) -> bool {
+    path_buf.push(file_name);
+    let result = path_buf.is_dir();
+    path_buf.pop();
+    result
+}
+
 fn examine(directory: &Path) -> Project {
     let mut path_buf = directory.to_path_buf();
     // Check if the folder has a .git folder.
@@ -84,19 +98,10 @@ fn examine(directory: &Path) -> Project {
         None
     };
     path_buf.pop();
-    // Check if the folder is a Node.js project.
-    path_buf.push("package.json");
-    let kind = if path_buf.is_file() {
-        // Check if is installed
-        path_buf.push("node_modules");
-        let has_node_modules = path_buf.is_dir();
-        path_buf.pop();
-        // Check if there is lock files.
-        path_buf.push("yarn.lock");
-        let mut has_lockfile = path_buf.is_file();
-        path_buf.pop();
-        path_buf.push("package-lock.json");
-        has_lockfile |= path_buf.is_file();
+    let has_package_json = is_file(&mut path_buf, "package.json");
+    let has_lockfile = is_file(&mut path_buf, "package-lock.json") || is_file(&mut path_buf, "yarn.lock");
+    let has_node_modules = is_dir(&mut path_buf, "node_modules");
+    let kind = if has_package_json || has_lockfile || has_node_modules {
         Some(ProjectKind::NodeJS {
             installed: has_node_modules,
             lockfile: has_lockfile,
