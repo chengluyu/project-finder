@@ -1,9 +1,9 @@
 use clap::{App, Arg};
+use colored::*;
 use std::fmt;
 use std::fs::{self, DirEntry};
 use std::io;
 use std::path::{Path, PathBuf};
-use colored::*;
 
 pub struct Git {
     clean: bool,
@@ -99,7 +99,8 @@ fn examine(directory: &Path) -> Project {
     };
     path_buf.pop();
     let has_package_json = is_file(&mut path_buf, "package.json");
-    let has_lockfile = is_file(&mut path_buf, "package-lock.json") || is_file(&mut path_buf, "yarn.lock");
+    let has_lockfile =
+        is_file(&mut path_buf, "package-lock.json") || is_file(&mut path_buf, "yarn.lock");
     let has_node_modules = is_dir(&mut path_buf, "node_modules");
     let kind = if has_package_json || has_lockfile || has_node_modules {
         Some(ProjectKind::NodeJS {
