@@ -115,7 +115,7 @@ fn examine(directory: &Path) -> Project {
     Project { git, kind }
 }
 
-fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
+fn visit_dirs(dir: &Path, predicate: &dyn Fn(&DirEntry) -> bool) -> io::Result<()> {
     if dir.is_dir() {
         let project = examine(dir);
         if project.is_project() {
@@ -125,11 +125,11 @@ fn visit_dirs(dir: &Path, cb: &dyn Fn(&DirEntry)) -> io::Result<()> {
         } else {
             for entry in fs::read_dir(dir)? {
                 let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() {
-                    visit_dirs(&path, cb)?;
-                } else {
-                    cb(&entry);
+                if predicate(&entry) {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        visit_dirs(&path, predicate)?;
+                    }
                 }
             }
         }
@@ -164,8 +164,6 @@ fn main() -> Result<(), AppError> {
     let input_directory = matches
         .value_of("INPUT")
         .ok_or(AppError::ArgNotFoundError)?;
-    visit_dirs(Path::new(input_directory), &|_| {
-        // println!("{:?}", entry.file_name());
-    })?;
+    visit_dirs(Path::new(input_directory), &|_| true)?;
     Ok(())
 }
