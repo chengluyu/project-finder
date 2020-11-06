@@ -1,5 +1,6 @@
 use clap::{App, Arg};
 use colored::*;
+use std::collections::HashSet;
 use std::fmt;
 use std::fs::{self, DirEntry};
 use std::io;
@@ -160,10 +161,24 @@ fn main() -> Result<(), AppError> {
                 .required(true)
                 .index(1),
         )
+        .arg(
+            Arg::new("exclude")
+                .multiple(true)
+                .takes_value(true)
+                .long("exclude")
+                .short('E'),
+        )
         .get_matches();
     let input_directory = matches
         .value_of("INPUT")
         .ok_or(AppError::ArgNotFoundError)?;
-    visit_dirs(Path::new(input_directory), &|_| true)?;
+    let excluded_names: HashSet<std::ffi::OsString> = matches
+        .values_of("exclude")
+        .unwrap()
+        .map(|s| s.into())
+        .collect();
+    visit_dirs(Path::new(input_directory), &|entry| {
+        !excluded_names.contains(&entry.file_name())
+    })?;
     Ok(())
 }
