@@ -59,7 +59,7 @@ impl fmt::Display for Project {
                 )?,
                 &ProjectKind::Rust { installed } => write!(
                     f,
-                    "found {} Rust",
+                    "  found {} Rust",
                     if installed {
                         "installed"
                     } else {
