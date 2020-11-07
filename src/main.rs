@@ -103,10 +103,16 @@ fn examine(directory: &Path) -> Project {
     let has_lockfile =
         is_file(&mut path_buf, "package-lock.json") || is_file(&mut path_buf, "yarn.lock");
     let has_node_modules = is_dir(&mut path_buf, "node_modules");
+    let has_cargo_lock = is_file(&mut path_buf, "Cargo.lock");
+    let has_cargo_toml = is_file(&mut path_buf, "Cargo.toml");
     let kind = if has_package_json || has_lockfile || has_node_modules {
         Some(ProjectKind::NodeJS {
             installed: has_node_modules,
             lockfile: has_lockfile,
+        })
+    } else if has_cargo_toml {
+        Some(ProjectKind::Rust {
+            installed: has_cargo_lock
         })
     } else {
         None
